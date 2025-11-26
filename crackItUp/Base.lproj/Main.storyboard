@@ -83,31 +83,39 @@
             </objects>
             <point key="canvasLocation" x="2585" y="-1958"/>
         </scene>
+
         <!--Question View Controller-->
         <scene sceneID="tvc-3g-rlk">
             <objects>
                 <viewController storyboardIdentifier="QuestionViewController" useStoryboardIdentifierAsRestorationIdentifier="YES" id="jvH-Xv-Kis" customClass="QuestionViewController" customModule="crackItUp" customModuleProvider="target" sceneMemberID="viewController">
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
                     <view key="view" contentMode="scaleToFill" id="H8c-z5-ygd">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="852"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+
                             <imageView clipsSubviews="YES" userInteractionEnabled="NO" contentMode="scaleAspectFit" image="register" translatesAutoresizingMaskIntoConstraints="NO" id="4cC-4d-E2h">
                                 <rect key="frame" x="-8" y="-230" width="408" height="1312"/>
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
                             </imageView>
                         </subviews>
                         <viewLayoutGuide key="safeArea" id="NT2-Ae-Ps7"/>
                         <color key="backgroundColor" systemColor="systemBackgroundColor"/>
+
                         <constraints>
                             <constraint firstItem="4cC-4d-E2h" firstAttribute="top" secondItem="H8c-z5-ygd" secondAttribute="top" constant="-230" id="9Or-jq-6eA"/>
                             <constraint firstAttribute="trailing" secondItem="4cC-4d-E2h" secondAttribute="trailing" constant="-7" id="BuE-Pk-P85"/>
                             <constraint firstAttribute="bottom" secondItem="4cC-4d-E2h" secondAttribute="bottom" constant="-230" id="h0W-SS-FJm"/>
                             <constraint firstItem="4cC-4d-E2h" firstAttribute="leading" secondItem="H8c-z5-ygd" secondAttribute="leading" constant="-8" id="s9o-L3-ioX"/>
                         </constraints>
+14d83261a0e889a1895207e0a7f45f68cf28d47c
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="awl-IS-tpw" userLabel="First Responder" customClass="UIResponder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="3243.5114503816794" y="-1958.4507042253522"/>
+
+            <point key="canvasLocation" x="3245" y="-1958"/>
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
         </scene>
         <!--Chapter View Controller-->
         <scene sceneID="pK2-KT-dMf">
@@ -233,9 +241,11 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="tinted" title="Button"/>
+
                                 <connections>
                                     <action selector="aptiButton:" destination="a2e-Sg-g0Y" eventType="touchUpInside" id="ijX-wL-T2D"/>
                                 </connections>
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="system" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Fy9-Kp-s6R">
                                 <rect key="frame" x="55" y="577" width="106" height="158"/>
@@ -254,9 +264,11 @@
                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="tinted" title="Button"/>
+
                                 <connections>
                                     <action selector="trainingButton:" destination="a2e-Sg-g0Y" eventType="touchUpInside" id="YSn-dU-Rzk"/>
                                 </connections>
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
                             </button>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" fixedFrame="YES" text="Continue Learning!" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Jln-5O-OTJ">
                                 <rect key="frame" x="55" y="162" width="194" height="140"/>
@@ -293,7 +305,9 @@
                     <tabBar key="tabBar" contentMode="scaleAspectFit" insetsLayoutMarginsFromSafeArea="NO" id="fnB-AV-6xM">
                         <rect key="frame" x="0.0" y="0.0" width="393" height="49"/>
                         <autoresizingMask key="autoresizingMask"/>
-                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
+
+                        <color key="backgroundColor" red="0.23574218744999997" green="0.13984686327835819" blue="0.046106375665447251" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
+ 14d83261a0e889a1895207e0a7f45f68cf28d47c
                         <color key="tintColor" red="0.94609528295" green="0.84548445428982077" blue="0.80086149762653069" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <color key="barTintColor" red="0.96564606419999999" green="0.86032836140000002" blue="0.80544249940000001" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>
                         <color key="selectedImageTintColor" red="0.94609528300000001" green="0.84548445429999997" blue="0.80086149760000003" alpha="1" colorSpace="custom" customColorSpace="displayP3"/>

@@ -2,70 +2,67 @@
 //  FieldViewController.swift
 //  crackItUp
 //
+
 //  Created by TANVI HARDE on 20/09/25.
-//
+
+
 
 import UIKit
 
 
-final class FieldViewController: UIViewController {
-    
-    private let scrollView = UIScrollView()
-    private let stackView = UIStackView()
-    
-    // Example levels
-    private let levels = (1...20).map { "Level \($0)" }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        setupScrollView()
-        setupStackView()
-        addLevelButtons()
-    }
-    
-    private func setupScrollView() {
-        scrollView.translatesAutoresizingMaskIntoConstraints = false
-        view.addSubview(scrollView)
+
+
+class FieldViewController: UIViewController, UISearchBarDelegate {
         
-        NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
-            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
-        ])
-    }
-    
-    private func setupStackView() {
-        stackView.axis = .vertical
-        stackView.spacing = 20
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        scrollView.addSubview(stackView)
+    @IBOutlet weak var searchBar: UISearchBar!
+    private var fields: [Field] = []
+        private let tableView = UITableView()
+        var roundId: String = "coding" // by default for coding round
         
-        NSLayoutConstraint.activate([
-            stackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
-            stackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            stackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            stackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
-        ])
-    }
-    
-    private func addLevelButtons() {
-        for level in levels {
-            let button = UIButton(type: .system)
-            button.applyCrackItStyle(title: level) // ✅ Apply custom style
-            button.heightAnchor.constraint(equalToConstant: 80).isActive = true
-            
-            button.addTarget(self, action: #selector(levelTapped(_:)), for: .touchUpInside)
-            stackView.addArrangedSubview(button)
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            title = "Fields"
+            view.backgroundColor = .systemBackground
+            setupTableView()
+            fetchFields()
+        }
+        
+        private func setupTableView() {
+            tableView.frame = view.bounds
+            tableView.dataSource = self
+            tableView.delegate = self
+            tableView.register(UITableViewCell.self, forCellReuseIdentifier: "FieldCell")
+            view.addSubview(tableView)
+        }
+        
+        private func fetchFields() {
+            FirestoreService.shared.fetchFields(roundId: roundId) { [weak self] fields in
+                self?.fields = fields
+                DispatchQueue.main.async {
+                    self?.tableView.reloadData()
+                }
+            }
         }
     }
-    
-    @objc private func levelTapped(_ sender: UIButton) {
-        if let title = sender.titleLabel?.text {
-            print("\(title) tapped")
+
+    extension FieldViewController: UITableViewDataSource, UITableViewDelegate {
+        
+        func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+            fields.count
+        }
+        
+        func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+            let cell = tableView.dequeueReusableCell(withIdentifier: "FieldCell", for: indexPath)
+            cell.textLabel?.text = fields[indexPath.row].title
+            return cell
+        }
+        
+        func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+            let field = fields[indexPath.row]
+            let syllabusVC = SyllabusViewController()
+            syllabusVC.roundId = roundId
+            syllabusVC.fieldId = field.id
+            navigationController?.pushViewController(syllabusVC, animated: true)
         }
     }
-}
 

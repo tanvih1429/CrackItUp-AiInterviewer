@@ -2,6 +2,7 @@
 //  HomeViewController.swift
 //  crackItUp
 //
+
 //  Created by TANVI HARDE on 21/09/25.
 //
 
@@ -40,4 +41,7 @@ class HomeViewController: UIViewController {  // ✅ Added UIViewController inhe
         let chapterVC = ChapterViewController(roundName: "training") // ✅ use your custom init
         self.navigationController?.pushViewController(chapterVC, animated: true)
     }
+
+
+
 }

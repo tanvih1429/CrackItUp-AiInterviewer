@@ -1,4 +1,4 @@
-//
+
 //  SubtopicViewController.swift
 //  crackItUp
 //
@@ -99,4 +99,23 @@ class SubtopicViewController: UIViewController {
         let questionVC = QuestionViewController(roundName: roundName, chapterId: chapterId, subtopicId: subtopic.id)
         navigationController?.pushViewController(questionVC, animated: true)
     }
+}
+extension SubtopicViewController: UITableViewDataSource, UITableViewDelegate {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int { subtopics.count }
+    
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SubtopicCell", for: indexPath)
+        cell.textLabel?.text = subtopics[indexPath.row].title
+        return cell
+    }
+    
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let subtopic = subtopics[indexPath.row]
+        let vc = QuestionViewController()
+        vc.roundId = roundId
+        vc.chapterId = chapterId
+        vc.subtopicId = subtopic.id
+        navigationController?.pushViewController(vc, animated: true)
+    }
+
 }
