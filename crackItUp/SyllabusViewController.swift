@@ -1,4 +1,3 @@
-
 //
 //  SyllabusViewController.swift
 //  crackItUp
@@ -6,38 +5,74 @@
 //  Created by TANVI HARDE on 20/09/25.
 //
 
-
 import UIKit
+import FirebaseFirestore
+
+struct syllabus {
+    let id: String
+    let title: String
+}
 
 final class SyllabusViewController: UIViewController {
+    let roundName: String
+    let fieldId: String
+    let fieldTitle: String
+
+    private let db = Firestore.firestore()
+    private var syllabi: [Syllabus] = []
+
     private let scrollView = UIScrollView()
     private let stackView = UIStackView()
-    private var syllabus: [Syllabus] = []   // ✅ syllabus instead of chapters
+
+    // Custom initializer
+    init(roundName: String, fieldId: String, fieldTitle: String) {
+        self.roundName = roundName
+        self.fieldId = fieldId
+        self.fieldTitle = fieldTitle
+       
+        super.init(nibName: nil, bundle: nil)
+    }
+
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .black
-        setupUI()
-        loadSyllabus()
+        view.backgroundColor = .systemBackground
+        setupScrollView()
+        setupStackView()
+        fetchSyllabi()
+
+        let backgroundImageView = UIImageView(frame: view.bounds)
+        backgroundImageView.image = UIImage(named: "bgImage")
+        backgroundImageView.contentMode = .scaleAspectFill
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(backgroundImageView)
+        view.sendSubviewToBack(backgroundImageView)
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
     }
 
-    private func setupUI() {
+    private func setupScrollView() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
-
         NSLayoutConstraint.activate([
             scrollView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
-            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
-            scrollView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 16),
+            scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -16),
+            scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
+    }
 
+    private func setupStackView() {
         stackView.axis = .vertical
         stackView.spacing = 20
         stackView.translatesAutoresizingMaskIntoConstraints = false
         scrollView.addSubview(stackView)
-
-        
         NSLayoutConstraint.activate([
             stackView.topAnchor.constraint(equalTo: scrollView.topAnchor, constant: 20),
             stackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
@@ -46,118 +81,45 @@ final class SyllabusViewController: UIViewController {
             stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor)
         ])
     }
-    
-    private func addLevelButtons() {
-        for level in levels {
-            let button = UIButton(type: .system)
-            button.applyCrackItStyle(title: level) // ✅ Apply custom style
-            button.heightAnchor.constraint(equalToConstant: 80).isActive = true
-            
-            button.addTarget(self, action: #selector(levelTapped(_:)), for: .touchUpInside)
-            stackView.addArrangedSubview(button)
-        }
-    }
-    
-    @objc private func levelTapped(_ sender: UIButton) {
-        if let title = sender.titleLabel?.text {
-            print("\(title) tapped")
-        }
-    }
-}
-extension UIButton {
-    func applyCrackItStyle(title: String) {
-        var config = UIButton.Configuration.filled()
-        config.title = title
-        config.baseBackgroundColor = UIColor(red: 60/255, green: 36/255, blue: 12/255, alpha: 1.0) // #3C240C
-        config.baseForegroundColor = UIColor(red: 241/255, green: 216/255, blue: 204/255, alpha: 1.0) // #F1D8CC
-        config.cornerStyle = .large
-        config.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16)
 
-        self.configuration = config
-        self.layer.borderColor = UIColor(red: 241/255, green: 216/255, blue: 204/255, alpha: 1.0).cgColor // same as text color
-               self.layer.borderWidth = 2
-               self.layer.cornerRadius = 12
-        // 🔹 Shadow styling
-        self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.4
-        self.layer.shadowOffset = CGSize(width: 2, height: 4)
-
-
-    }
-
-    private func loadSyllabus() {
-        FirestoreService.shared.fetchSyllabus { [weak self] result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let items):
-                    self?.syllabus = items
-                    self?.renderButtons()
-                case .failure(let err):
-                    print("Syllabus error:", err.localizedDescription)
+    private func fetchSyllabi() {
+        db.collection("rounds").document(roundName)
+            .collection("fields").document(fieldId)
+            .collection("syllabus")
+            .getDocuments { snapshot, error in
+                guard let documents = snapshot?.documents, error == nil else { return }
+                self.syllabi = documents.map {
+                    let title = $0.data()["title"] as? String ?? $0.documentID
+                    return Syllabus(id: $0.documentID, title: title)
                 }
+                DispatchQueue.main.async { self.addSyllabusButtons() }
             }
-        }
     }
 
-    private func renderButtons() {
+    private func addSyllabusButtons() {
+        // Remove old buttons first!
         stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
-
-        for (idx, item) in syllabus.enumerated() {
+        for (i, syllabus) in syllabi.enumerated() {
             let button = UIButton(type: .system)
-            button.setTitle(item.title, for: .normal)   // ✅ syllabus title
-            button.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
-            button.setTitleColor(.white, for: .normal)
-            button.applyCrackItStyle()
-            button.heightAnchor.constraint(equalToConstant: 100).isActive = true
-            button.tag = idx
+            button.applyCrackItStyle(title: syllabus.title)
+            button.heightAnchor.constraint(equalToConstant: 70).isActive = true
+            button.tag = i
             button.addTarget(self, action: #selector(syllabusTapped(_:)), for: .touchUpInside)
             stackView.addArrangedSubview(button)
         }
     }
 
     @objc private func syllabusTapped(_ sender: UIButton) {
-        let item = syllabus[sender.tag]   // syllabus = [Syllabus]
-        let vc = ChapterViewController(
-            syllabusId: item.id,          // pass syllabus id
-            syllabusTitle: item.title     // pass syllabus title
-        )
-        navigationController?.pushViewController(vc, animated: true)
-    }
-}
-
-
-extension UIButton {
-    func applyCrackItStyle() {
-        // Rounded corners
-        self.layer.cornerRadius = 16
-        self.clipsToBounds = true
-
-        // Background gradient
-        let gradientLayer = CAGradientLayer()
-        gradientLayer.colors = [
-            UIColor.systemPurple.cgColor,
-            UIColor.systemBlue.cgColor
-        ]
-        gradientLayer.startPoint = CGPoint(x: 0, y: 0.5)
-        gradientLayer.endPoint = CGPoint(x: 1, y: 0.5)
-        gradientLayer.frame = self.bounds
-        gradientLayer.cornerRadius = 16
-
-        // Remove old gradient if any
-        if let old = (self.layer.sublayers?.first { $0 is CAGradientLayer }) {
-            old.removeFromSuperlayer()
+            let selectedSyllabus = syllabi[sender.tag]
+            let chapterVC = ChapterViewController(
+                roundName: roundName,
+                fieldId: fieldId,
+                fieldTitle: fieldTitle,
+                syllabusId: selectedSyllabus.id,
+                syllabusTitle: selectedSyllabus.title
+            )
+            navigationController?.pushViewController(chapterVC, animated: true)
         }
-        self.layer.insertSublayer(gradientLayer, at: 0)
-
-        // Text style
-        self.setTitleColor(.white, for: .normal)
-        self.titleLabel?.font = UIFont.boldSystemFont(ofSize: 20)
-
-        // Shadow for depth
-        self.layer.shadowColor = UIColor.black.cgColor
-        self.layer.shadowOpacity = 0.25
-        self.layer.shadowOffset = CGSize(width: 0, height: 4)
-
-        self.layer.shadowRadius = 6
-    }
 }
+
+

@@ -27,77 +27,112 @@ extension UIColor {
 
 // ✅ Custom button with progress and level
 class ProgressButton: UIButton {
-    
+   
     private let progressLayer = CALayer()
     private let levelLabel = UILabel()
     private let percentLabel = UILabel()
-    
+   
     var progress: CGFloat = 0.0 { didSet { updateProgress() } }
     var levelText: String = "" { didSet { levelLabel.text = levelText } }
     var percentText: String = "" { didSet { percentLabel.text = percentText } }
-    
+   
     override init(frame: CGRect) { super.init(frame: frame); setupView() }
     required init?(coder: NSCoder) { super.init(coder: coder); setupView() }
-    
+   
     private func setupView() {
         layer.cornerRadius = 25
         clipsToBounds = true
         backgroundColor = UIColor(hex: "#F1C7A0") // beige
-        
+       
         progressLayer.backgroundColor = UIColor(hex: "#3C240C").cgColor // brown
         layer.insertSublayer(progressLayer, at: 0)
-        
+       
         levelLabel.textAlignment = .center
         levelLabel.textColor = .white
         levelLabel.font = UIFont.boldSystemFont(ofSize: 16)
         addSubview(levelLabel)
-        
+       
         percentLabel.textAlignment = .right
         percentLabel.textColor = .white
         percentLabel.font = UIFont.systemFont(ofSize: 14)
         addSubview(percentLabel)
     }
-    
+   
     override func layoutSubviews() {
         super.layoutSubviews()
         progressLayer.frame = CGRect(x: 0, y: 0, width: bounds.width * progress, height: bounds.height)
         levelLabel.frame = bounds
         percentLabel.frame = CGRect(x: bounds.width - 60, y: 0, width: 55, height: bounds.height)
     }
-    
+   
     private func updateProgress() {
         progressLayer.frame = CGRect(x: 0, y: 0, width: bounds.width * progress, height: bounds.height)
         percentText = "\(Int(progress * 100))%"
     }
 }
 
-
-import UIKit
 import FirebaseFirestore
 
 class ChapterViewController: UIViewController {
-    
-    var roundName: String
+
+        let roundName: String
+        let fieldId: String?
+        let fieldTitle: String?
+        let syllabusId: String?
+        let syllabusTitle: String?
+   
     private let db = Firestore.firestore()
     private var chapters: [(id: String, title: String)] = []
-    
+
     let scrollView = UIScrollView()
     let stackView = UIStackView()
-    
-    init(roundName: String) {
-        self.roundName = roundName
-        super.init(nibName: nil, bundle: nil)
+   
+   
+
+    // Apti/training initializer
+    init(roundName: String, fieldId: String, fieldTitle: String, syllabusId: String, syllabusTitle: String) {
+            self.roundName = roundName
+            self.fieldId = fieldId
+            self.fieldTitle = fieldTitle
+            self.syllabusId = syllabusId
+            self.syllabusTitle = syllabusTitle
+            super.init(nibName: nil, bundle: nil)
     }
+
+    // Coding round initializer
+    init(roundName: String) {
+            self.roundName = roundName
+            self.fieldId = nil
+            self.fieldTitle = nil
+            self.syllabusId = nil
+            self.syllabusTitle = nil
+            super.init(nibName: nil, bundle: nil)
+        }
+
     required init?(coder: NSCoder) { fatalError("init(coder:) has not been implemented") }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = .systemBackground
         setupScrollView()
         setupStackView()
         fetchChapters()
+        let backgroundImageView = UIImageView(frame: view.bounds)
+        backgroundImageView.image = UIImage(named: "bgImage")
+        backgroundImageView.contentMode = .scaleAspectFill
+        backgroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(backgroundImageView)
+        view.sendSubviewToBack(backgroundImageView)
+        NSLayoutConstraint.activate([
+            backgroundImageView.topAnchor.constraint(equalTo: view.topAnchor),
+            backgroundImageView.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            backgroundImageView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            backgroundImageView.trailingAnchor.constraint(equalTo: view.trailingAnchor)
+        ])
     }
-    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+    }
     private func setupScrollView() {
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(scrollView)
@@ -108,7 +143,7 @@ class ChapterViewController: UIViewController {
             scrollView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
     }
-    
+
     private func setupStackView() {
         stackView.axis = .vertical
         stackView.spacing = 16
@@ -122,16 +157,52 @@ class ChapterViewController: UIViewController {
             stackView.widthAnchor.constraint(equalTo: scrollView.widthAnchor, constant: -40)
         ])
     }
-    
+ 
+   
+
+
     private func fetchChapters() {
-        db.collection("rounds").document(roundName).collection("chapters").getDocuments { snapshot, error in
-            guard let documents = snapshot?.documents, error == nil else { return }
+        // 1. Clear chapter UI immediately (so old content disappears)
+        self.chapters = []
+        DispatchQueue.main.async { self.addChapterButtons() }
+
+        // 2. Optionally show a loading spinner
+         //(Uncomment below if you want visible indication)
+         let spinner = UIActivityIndicatorView(style: .large)
+         spinner.center = view.center
+         spinner.startAnimating()
+         view.addSubview(spinner)
+
+        var collection: CollectionReference
+        if roundName == "coding", let fieldId = fieldId, let syllabusId = syllabusId {
+            collection = db.collection("rounds").document(roundName)
+                .collection("fields").document(fieldId)
+                .collection("syllabus").document(syllabusId)
+                .collection("chapters")
+        } else {
+            collection = db.collection("rounds").document(roundName)
+                .collection("chapters")
+        }
+
+        collection.getDocuments { snapshot, error in
+            guard let documents = snapshot?.documents, error == nil else {
+                spinner.removeFromSuperview()
+                return
+            }
             self.chapters = documents.map { (id: $0.documentID, title: $0.data()["title"] as? String ?? $0.documentID) }
-            DispatchQueue.main.async { self.addChapterButtons() }
+
+            // 3. Remove spinner if used, then update UI with new data
+            DispatchQueue.main.async {
+                spinner.removeFromSuperview()
+                self.addChapterButtons()
+            }
         }
     }
-    
+
+
     private func addChapterButtons() {
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+           
         for (index, chapter) in chapters.enumerated() {
             let button = ProgressButton()
             button.levelText = chapter.title
@@ -140,13 +211,36 @@ class ChapterViewController: UIViewController {
             button.translatesAutoresizingMaskIntoConstraints = false
             button.heightAnchor.constraint(equalToConstant: 50).isActive = true
             button.addTarget(self, action: #selector(openSubtopics(_:)), for: .touchUpInside)
+            button.layer.borderColor = UIColor(hex: "#613A14").cgColor
+            button.layer.borderWidth = 1
             stackView.addArrangedSubview(button)
         }
     }
-    
+   
+
     @objc private func openSubtopics(_ sender: UIButton) {
         let chapter = chapters[sender.tag]
-        let subtopicVC = SubtopicViewController(roundName: roundName, chapterId: chapter.id, chapterTitle: chapter.title)
+        let subtopicVC: SubtopicViewController
+        if roundName == "coding", let fieldId = fieldId, let syllabusId = syllabusId {
+            subtopicVC = SubtopicViewController(
+                roundName: roundName,
+                fieldId: fieldId,
+                syllabusId: syllabusId,
+                chapterId: chapter.id,
+                chapterTitle: chapter.title
+            )
+        } else {
+            subtopicVC = SubtopicViewController(
+                roundName: roundName,
+                chapterId: chapter.id,
+                chapterTitle: chapter.title
+            )
+        }
         navigationController?.pushViewController(subtopicVC, animated: true)
     }
+    @objc func feedbackButtonTapped() {
+        let feedbackVC = FeedBackViewController()
+        navigationController?.pushViewController(feedbackVC, animated: true)
+    }
+
 }
