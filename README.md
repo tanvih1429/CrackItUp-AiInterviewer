@@ -42,4 +42,4 @@ Tools: Xcode 16+, CocoaPods/Swift Package Manager
 
 # Screenshots
 <img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 - 2025-11-29 at 15 23 23" src="https://github.com/user-attachments/assets/91666e1c-a7a3-4894-ac2b-9eab65adce51" />
-<img width="1206" height="2622" alt="Simulator Screenshot - iPhone 17 - 2025-11-29 at 15 25 06" src="https://github.com/user-attachments/assets/f6513d5a-c35c-4675-b755-9627d556002d" />
+
